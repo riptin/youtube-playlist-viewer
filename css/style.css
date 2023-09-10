@@ -52,7 +52,8 @@ body {
 .headers,
 .single-result {
   display: grid;
-  grid-auto-columns: 1fr 3fr 3fr 2fr 2fr 2fr 2fr;
+  /* grid-auto-columns: 1fr 3fr 3fr 2fr 2fr 2fr 2fr; */
+  grid-auto-columns: 3fr 3fr 3fr 2fr 2fr 2fr 2fr;
   grid-auto-flow: column;
   gap: 5px;
   border-bottom: 1px solid #000;
@@ -67,18 +68,51 @@ body {
   user-select: none;
 }
 
-.attribute-name.video-id svg{
+
+
+.single-result.deleted,
+.single-result.private {
+  background: #9797976e;
+}
+
+.attribute.video-id .name {
+  display: flex;
+  align-items: center;
+}
+.attribute.video-id svg{
   width: 16px;
   height: 16px;
   margin-left: 2px;
 }
 
-.attribute-name {
+.attribute {
   display: flex;
   align-items: center;
   margin: 20px 0;
   font-size: 16px;
   font-weight: bold;
+}
+
+.attribute .name {
+  cursor: pointer;
+}
+
+.headers .sort {
+  display: none;
+  cursor: pointer;
+}
+/* .headers .sort.active { */
+.headers .sort {
+  display: flex;
+  margin-left: 2px;
+}
+.headers .sort svg {
+  width: 16px;
+  height: 16px;
+}
+.headers .sort.ascending {}
+.headers .sort.descending svg {
+  transform: rotate(180deg);
 }
 
 .cell {

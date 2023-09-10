@@ -4,6 +4,7 @@ window.addEventListener('load', () => {
   const viewPlaylistBtn = document.querySelector("#view-playlist-button");
   const exportPlaylistBtn = document.querySelector("#export-playlist-button");
   const playlistNameContainer = document.querySelector(".playlist-name");
+  const attributes = document.querySelectorAll('.attribute');
   const apiKey = 'AIzaSyCKHytj5BTTR324N9R4NXnud41v1vhYwiw';
   let playlistItems = [];
   let playlistName = '';
@@ -76,6 +77,8 @@ window.addEventListener('load', () => {
     playlistItems.forEach((playlistItem) => {
       playlistItemElement = document.createElement("div");
       playlistItemElement.classList.add('single-result');
+      if (playlistItem.title === 'Deleted video') playlistItemElement.classList.add('deleted');
+      if (playlistItem.title === 'Private video') playlistItemElement.classList.add('private');
       playlistItemElement.innerHTML = `
       <div class="cell video-position"><div class="value">${playlistItem.position}</div></div>
       <div class="cell video-title"><div class="value">${playlistItem.title}</div></div>
@@ -118,6 +121,10 @@ window.addEventListener('load', () => {
     const dateObj = new Date(Date.parse(date));
     return `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()} ${dateObj.getHours().toString().padStart(2, '0')}-${dateObj.getMinutes().toString().padStart(2, '0')}`;
   }
+
+  attributes.forEach(attributeContainer => {
+    console.log(attributeContainer);
+  });
 
   viewPlaylistBtn.addEventListener('click', () => {
       getPlaylistItems(playlistInputField.value);
