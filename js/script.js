@@ -4,7 +4,10 @@ window.addEventListener('load', () => {
   const viewPlaylistBtn = document.querySelector("#view-playlist-button");
   const exportPlaylistBtn = document.querySelector("#export-playlist-button");
   const playlistNameContainer = document.querySelector(".playlist-name");
-  const attributes = document.querySelectorAll('.attribute');
+  const extraInfoContainer = document.querySelector(".extra-info");
+  const videoCount = document.querySelector(".video-num label");
+  const unavailableVideoCount = document.querySelector(".unavailable-video-num label");
+  const attributeTitles = document.querySelectorAll('.attribute');
   const apiKey = 'AIzaSyCKHytj5BTTR324N9R4NXnud41v1vhYwiw';
   let playlistItems = [];
   let playlistName = '';
@@ -14,9 +17,12 @@ window.addEventListener('load', () => {
     // sorting by attributes
     // clear results on new search
     // sticky headers
-    //  highlight unavailable
+    // highlight unavailable
     // thumbnails in image tags
     // handle playlist id and url
+    // favicon
+    // add loader 
+  // unavailable video counter
   
 
   async function getPlaylistItems(playlistId) {
@@ -57,11 +63,14 @@ window.addEventListener('load', () => {
               description:  playlistItem?.snippet?.description,
               videoId:      playlistItem?.snippet?.resourceId?.videoId,
               thumbnail:    playlistItem?.snippet?.thumbnails?.medium?.url,
-              addedAt:      formatDate(playlistItem?.snippet?.publishedAt),
-              uploadedAt:   formatDate(playlistItem?.contentDetails?.videoPublishedAt)
+              addedAt:      playlistItem?.snippet?.publishedAt,
+              uploadedAt:   playlistItem?.contentDetails?.videoPublishedAt
             }
           });
 
+          extraInfoContainer.classList.add('active');
+          videoCount.innerText = playlistItems.length;
+          unavailableVideoCount.innerText = playlistItems.filter(playlistItem => playlistItem.title === 'Private video' || playlistItem.title === 'Deleted video').length;
           renedrPlaylistItems(playlistItems);
         }
       });
@@ -87,8 +96,8 @@ window.addEventListener('load', () => {
       <div class="cell video-id" ><div class="value">
         <a target="_blank" href="https://www.youtube.com/watch?v=${playlistItem.videoId}">${playlistItem.videoId}</a>
       </div></div>
-      <div class="cell video-add-date"><div class="value">${playlistItem.addedAt}</div></div>
-      <div class="cell video-upload-date"><div class="value">${playlistItem.uploadedAt}</div></div>
+      <div class="cell video-add-date"><div class="value">${formatDate(playlistItem.addedAt)}</div></div>
+      <div class="cell video-upload-date"><div class="value">${formatDate(playlistItem.uploadedAt)}</div></div>
     `;
     
       resultContainer.appendChild(playlistItemElement);
@@ -122,8 +131,63 @@ window.addEventListener('load', () => {
     return `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()} ${dateObj.getHours().toString().padStart(2, '0')}-${dateObj.getMinutes().toString().padStart(2, '0')}`;
   }
 
-  attributes.forEach(attributeContainer => {
-    console.log(attributeContainer);
+  function sortItems(property = 'position', direction = 'ascending') {
+    if (!playlistItems.length) return;
+    
+    console.log(property);
+    playlistItems = playlistItems.sort((a, b) => {
+      let aElement = a[property];
+      let bElement = b[property];
+
+      if (property !== 'position' && property !== 'addedAt') {
+        if (
+          (a['title'].toLowerCase() === 'private video' && b['title'].toLowerCase() === 'private video') ||
+          (a['title'].toLowerCase() === 'deleted video' && b['title'].toLowerCase() === 'deleted video')
+        ) return 0;
+        if (a['title'].toLowerCase() === 'private video' && b['title'].toLowerCase() === 'deleted video') return direction === 'ascending' ? 1 : -1;
+        if (a['title'].toLowerCase() === 'deleted video' && b['title'].toLowerCase() === 'private video') return direction === 'ascending' ? -1 : 1;
+        if (a['title'].toLowerCase() === 'private video' || a['title'].toLowerCase() === 'deleted video') return direction === 'ascending' ? 1 : -1;
+        if (b['title'].toLowerCase() === 'private video' || b['title'].toLowerCase() === 'deleted video') return direction === 'ascending' ? -1 : 1;
+      }
+
+      if (property === 'addedAt' || property === 'uploadedAt') {
+        console.log(aElement);
+        console.log(new Date(aElement));
+        aElement = new Date(aElement).getTime();
+        bElement = new Date(bElement).getTime();
+        // console.log(aElement);
+        // console.log(bElement);
+      } else if (property !== 'position' ) {
+        aElement = aElement.toLowerCase();
+        bElement = bElement.toLowerCase();
+      }
+      
+      if (aElement < bElement) {
+        return direction === 'ascending' ? -1 : 1;
+      }
+      if (aElement > bElement) {
+        return direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    renedrPlaylistItems(playlistItems);
+  }
+
+  attributeTitles.forEach(attributeContainer => {
+    attributeContainer.addEventListener('click', function (e) {
+      const attributeTitle = e.target.closest('.attribute');
+      
+      if (attributeTitle.classList.contains('sort')) {
+        attributeTitle.classList.toggle('ascending');
+        attributeTitle.classList.toggle('descending');
+      } else {
+        attributeTitles.forEach(attributeTitle => attributeTitle.classList.remove('sort', 'ascending', 'descending'));
+        attributeTitle.classList.add('sort', 'ascending');
+      }
+
+      sortItems(attributeTitle.id, attributeTitle.classList.contains('descending') ? 'descending' : 'ascending');
+    });
   });
 
   viewPlaylistBtn.addEventListener('click', () => {
