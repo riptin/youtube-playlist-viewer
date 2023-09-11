@@ -14,15 +14,11 @@ window.addEventListener('load', () => {
 
     // TODO
     // Why doesn't await wait??
-    // sorting by attributes
-    // clear results on new search
-    // sticky headers
-    // highlight unavailable
     // thumbnails in image tags
     // handle playlist id and url
     // favicon
-    // add loader 
-  // unavailable video counter
+    // add loader
+    // refactor in vue
   
 
   async function getPlaylistItems(playlistId) {
