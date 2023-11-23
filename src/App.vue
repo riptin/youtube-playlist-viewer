@@ -1,10 +1,12 @@
 <script setup>
 // TODO
 // optimise store
-// handle both playlist id and url
-// add loader
 // optimise sorting
+// hide unavailable videos checkbox
+// proper error handling
 // ?add video length attribute
+// download video
+// add playlist url to url bar
 </script>
 
 <template>
@@ -14,6 +16,21 @@
 </template>
 
 <style lang="scss">
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #9ac48c;
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb {
+  background: #00671a85;
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00290a;
+}
 html {
   height: 100%;
   width: 100%;
@@ -28,6 +45,6 @@ body {
 }
 .wrapper {
   padding: 0 5%;
-  min-height: 100%;
+  height: 100%;
 }
 </style>

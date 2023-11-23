@@ -1,14 +1,14 @@
 <script setup>
-import PlaylistItem from '@/components/PlaylistItem.vue'
+import PlaylistItem from '@/components/index-page/PlaylistItem.vue'
 import { storeToRefs } from 'pinia'
 import { usePlaylitStore } from '@/stores/playlist'
 
 const store = usePlaylitStore()
-const { playlistItems } = storeToRefs(store)
+const { playlistItems, playlistLoading } = storeToRefs(store)
 </script>
 
 <template>
-  <div class="playlist-items">
+  <div :class="['playlist-items', { active: playlistLoading === 'loaded' }]">
     <PlaylistItem
       v-for="playlistItem in playlistItems"
       :playlistItem="playlistItem"
@@ -18,23 +18,15 @@ const { playlistItems } = storeToRefs(store)
 
 <style scoped lang="scss">
 .playlist-items {
-  display: flex;
+  display: none;
   flex-direction: column;
+  &.active {
+    display: flex;
+  }
 
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #9ac48c;
-    border-radius: 20px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #00671a85;
-    border-radius: 20px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #00290a;
   }
 }
 </style>

@@ -7,8 +7,13 @@ import { storeToRefs } from 'pinia'
 
 const attributeTitles = ref([])
 const store = usePlaylitStore()
-const { playlistItems, orderByProperty, orderDirection, orderedPlaylist } =
-  storeToRefs(store)
+const {
+  playlistItems,
+  orderByProperty,
+  orderDirection,
+  orderedPlaylist,
+  playlistLoading,
+} = storeToRefs(store)
 
 onMounted(() => {
   attributeTitles.value = document.querySelectorAll(
@@ -41,7 +46,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="attribute-titles">
+  <div :class="['attribute-titles', { active: playlistLoading === 'loaded' }]">
     <div id="position" class="attribute video-position">
       <div class="name">Position</div>
       <div class="sort-icon"><ArrowBoxIcon /></div>
@@ -86,7 +91,7 @@ onMounted(() => {
 .attribute-titles {
   position: sticky;
   top: 0;
-  display: grid;
+  display: none;
   grid-auto-columns: 3fr 3fr 3fr 2fr 2fr 2fr 2fr;
   grid-auto-flow: column;
   gap: 5px;
@@ -95,8 +100,10 @@ onMounted(() => {
   height: 63px;
   background: #fff;
   user-select: none;
+  &.active {
+    display: grid;
+  }
 }
-
 .attribute.video-id .name {
   display: flex;
   align-items: center;
@@ -106,7 +113,6 @@ onMounted(() => {
   height: 16px;
   margin-left: 2px;
 }
-
 .attribute {
   display: flex;
   align-items: center;
@@ -114,11 +120,9 @@ onMounted(() => {
   font-size: 16px;
   font-weight: bold;
 }
-
 .attribute:not(.thumbnail) .name {
   cursor: pointer;
 }
-
 .attribute-titles .attribute .sort-icon {
   margin-left: 2px;
   opacity: 0;
@@ -137,7 +141,6 @@ onMounted(() => {
   height: 16px;
   transition: transform 0.2s;
 }
-
 .attribute-titles .attribute.descending .sort-icon svg {
   transform: rotate(180deg);
 }

@@ -2,20 +2,22 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 export const usePlaylitStore = defineStore('playlist', () => {
-  const playlistName = ref('')
-  const unavailableVideoCount = ref(0)
-  const videoCount = ref(0)
   const playlistItems = ref([])
+  const playlistName = ref('')
+  const videoCount = ref(0)
+  const unavailableVideoCount = ref(0)
   const orderByProperty = ref('position')
   const orderDirection = ref('ascending')
+  const playlistLoading = ref('')
 
   function $reset() {
+    playlistItems.value = []
     playlistName.value = ''
     videoCount.value = 0
     unavailableVideoCount.value = 0
-    playlistItems.value = []
     orderByProperty.value = 'position'
     orderDirection.value = 'ascending'
+    playlistLoading.value = ''
   }
 
   const orderedPlaylist = computed(() => {
@@ -100,16 +102,67 @@ export const usePlaylitStore = defineStore('playlist', () => {
     })
   }
 
-  async function getPlaylist(playlistId) {
+  async function getPlaylist(playlistLink) {
+    const playlistId = playlistLink.match(/(?:.*(?:list=))?(.{18,34})/)[1]
+
+    if (!playlistId) return console.log('no playlist id')
+    if (playlistLoading.value === 'loading')
+      return console.log('already fetching playlist')
+
+    getPlaylistItems(playlistId)
+    getPlaylistName(playlistId)
+  }
+
+  async function getPlaylistItems(playlistId) {
     const apiKey = 'AIzaSyCKHytj5BTTR324N9R4NXnud41v1vhYwiw'
     const fetchUrl = `https://youtube.googleapis.com/youtube/v3/playlistItems?key=${apiKey}&playlistId=${playlistId}&part=snippet%2CcontentDetails&maxResults=1000&fields=nextPageToken,items(snippet(title,position,description,resourceId(videoId),thumbnails(medium(url)),publishedAt),contentDetails(videoPublishedAt))`
-
     playlistItems.value = []
-    console.log('fetch data')
-    await fetchData(fetchUrl).then(() => {
-      console.log('data fetched!')
-      console.log(playlistItems.value)
+    playlistLoading.value = 'loading'
+
+    console.log('start fetching data')
+
+    await fetchData(fetchUrl).then((response) => {
+      // console.log('response')
+      // console.log(response)
+      // console.log('data fetched!')
+      // console.log(playlistItems.value)
     })
+  }
+
+  async function fetchData(url) {
+    console.log('fetching')
+    // return fetch(url)
+    const fetchResponse = await fetch(url)
+      .then((response) => response.json())
+      .then((json) => {
+        console.log('fetched')
+        console.log(json)
+        if (!json.items) return playlistItems.value
+
+        playlistItems.value.push(...json.items)
+
+        if (json.nextPageToken) {
+          fetchData(`${url}&pageToken=${json.nextPageToken}`)
+        } else {
+          console.log('all items fetched')
+          videoCount.value = playlistItems.value.length
+          mapPlaylist()
+          playlistLoading.value = 'loaded'
+        }
+      })
+
+    return fetchResponse
+  }
+
+  async function getPlaylistName(playlistId) {
+    const apiKey = 'AIzaSyCKHytj5BTTR324N9R4NXnud41v1vhYwiw'
+    const url = `https://www.googleapis.com/youtube/v3/playlists?key=${apiKey}&id=${playlistId}&part=snippet&fields=items(snippet(title))`
+
+    await fetch(url)
+      .then((response) => response.json())
+      .then((json) => {
+        playlistName.value = json.items[0].snippet.title
+      })
   }
 
   async function exportPlaylist() {
@@ -148,39 +201,6 @@ export const usePlaylitStore = defineStore('playlist', () => {
     XLSX.writeFile(workbook, fileName, { compression: true })
   }
 
-  async function getPlaylistName(playlistId) {
-    if (!playlistId) return
-    const apiKey = 'AIzaSyCKHytj5BTTR324N9R4NXnud41v1vhYwiw'
-    const url = `https://www.googleapis.com/youtube/v3/playlists?key=${apiKey}&id=${playlistId}&part=snippet&fields=items(snippet(title))`
-
-    await fetch(url)
-      .then((response) => response.json())
-      .then((json) => {
-        playlistName.value = json.items[0].snippet.title
-        console.log(playlistName.value)
-      })
-  }
-
-  async function fetchData(url) {
-    console.log('fetching')
-    return fetch(url)
-      .then((response) => response.json())
-      .then((json) => {
-        console.log('fetched')
-        if (!json.items) return playlistItems.value
-
-        playlistItems.value.push(...json.items)
-
-        if (json.nextPageToken) {
-          fetchData(`${url}&pageToken=${json.nextPageToken}`)
-        } else {
-          console.log('all items fetched')
-          videoCount.value = playlistItems.value.length
-          mapPlaylist()
-        }
-      })
-  }
-
   return {
     playlistName,
     playlistItems,
@@ -189,10 +209,10 @@ export const usePlaylitStore = defineStore('playlist', () => {
     orderByProperty,
     orderDirection,
     orderedPlaylist,
-    mapPlaylist,
+    playlistLoading,
     $reset,
+    mapPlaylist,
     getPlaylist,
     exportPlaylist,
-    getPlaylistName,
   }
 })
